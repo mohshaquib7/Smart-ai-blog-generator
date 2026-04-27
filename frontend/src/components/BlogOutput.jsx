@@ -41,20 +41,22 @@ export const BlogOutput = ({ blog, onRegenerate, regenerating }) => {
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={onRegenerate}
-                        disabled={regenerating}
-                        data-testid="regenerate-button"
-                        className="flex items-center gap-2 px-4 py-2 border border-zinc-300 hover:border-zinc-900 transition-colors text-sm font-ui font-medium disabled:opacity-50"
-                    >
-                        <ArrowsClockwise
-                            size={14}
-                            weight="bold"
-                            className={regenerating ? "animate-spin" : ""}
-                        />
-                        Regenerate
-                    </button>
+                    {onRegenerate && (
+                        <button
+                            type="button"
+                            onClick={onRegenerate}
+                            disabled={regenerating}
+                            data-testid="regenerate-button"
+                            className="flex items-center gap-2 px-4 py-2 border border-zinc-300 hover:border-zinc-900 transition-colors text-sm font-ui font-medium disabled:opacity-50"
+                        >
+                            <ArrowsClockwise
+                                size={14}
+                                weight="bold"
+                                className={regenerating ? "animate-spin" : ""}
+                            />
+                            Regenerate
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={copyAll}

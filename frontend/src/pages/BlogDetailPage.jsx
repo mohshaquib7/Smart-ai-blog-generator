@@ -46,7 +46,7 @@ export const BlogDetailPage = () => {
                     {error}
                 </div>
             )}
-            {!loading && blog && <BlogOutput blog={blog} onRegenerate={() => {}} regenerating={false} />}
+            {!loading && blog && <BlogOutput blog={blog} regenerating={false} />}
         </div>
     );
 };
