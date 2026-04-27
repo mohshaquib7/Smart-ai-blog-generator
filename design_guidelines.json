@@ -1,0 +1,113 @@
+{
+  "project_name": "AI Blog Generator SaaS",
+  "theme": {
+    "mode": "LIGHT",
+    "archetype": "4 (Swiss & High-Contrast)",
+    "description": "Authority, clarity, and truth. A high-contrast, editorial layout that feels like a premium writing instrument or modern publishing studio."
+  },
+  "typography": {
+    "imports": [
+      "@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,500,700,400,900&display=swap');",
+      "@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');"
+    ],
+    "fonts": {
+      "headings": "'Cabinet Grotesk', sans-serif",
+      "ui_body": "'Manrope', sans-serif",
+      "editor_body": "'Playfair Display', serif",
+      "mono": "'JetBrains Mono', monospace"
+    },
+    "hierarchy": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tighter leading-none font-black font-['Cabinet_Grotesk']",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight leading-tight font-bold font-['Cabinet_Grotesk']",
+      "h3": "text-xl sm:text-2xl tracking-tight font-semibold font-['Cabinet_Grotesk']",
+      "body_ui": "text-sm sm:text-base leading-snug font-['Manrope'] text-zinc-700",
+      "body_editor": "text-base sm:text-lg leading-relaxed font-['Playfair_Display'] text-zinc-900",
+      "labels": "text-xs uppercase tracking-[0.2em] font-['JetBrains_Mono'] text-zinc-500"
+    }
+  },
+  "colors": {
+    "background": {
+      "primary": "#FFFFFF",
+      "sidebar": "#F4F4F5",
+      "glass": "rgba(255, 255, 255, 0.85)"
+    },
+    "text": {
+      "primary": "#0A0A0A",
+      "secondary": "#52525B",
+      "inverse": "#FFFFFF"
+    },
+    "brand": {
+      "primary": "#002FA7",
+      "hover": "#002277",
+      "muted": "rgba(0, 47, 167, 0.05)"
+    },
+    "border": {
+      "default": "#E4E4E7",
+      "focus": "#002FA7"
+    }
+  },
+  "layout": {
+    "strategy": "Split Panel / F-Pattern",
+    "structure": {
+      "navbar": "Sticky top, h-16, backdrop-blur-xl bg-white/85, 1px bottom border-zinc-200, z-50",
+      "main_container": "flex flex-col md:flex-row min-h-[calc(100vh-4rem)]",
+      "left_panel": "w-full md:w-[380px] lg:w-[420px] bg-zinc-50 border-r border-zinc-200 p-6 md:p-8 flex flex-col gap-8 shrink-0 overflow-y-auto",
+      "right_panel": "flex-1 bg-white p-6 md:p-12 lg:p-24 relative overflow-y-auto"
+    },
+    "grids": {
+      "history_page": "Bento 'Control Room' Grid: grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6. Dense data, tight gaps, flat 1px borders."
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#002FA7] text-white hover:bg-[#002277] rounded-none px-8 py-4 font-['Cabinet_Grotesk'] text-lg font-bold tracking-wide transition-colors flex items-center justify-center gap-2",
+      "secondary": "bg-transparent text-zinc-900 border border-zinc-300 hover:border-zinc-900 rounded-none px-6 py-2 font-['Manrope'] transition-all",
+      "ghost": "bg-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-none px-4 py-2 font-['Manrope'] transition-all"
+    },
+    "inputs": {
+      "text": "rounded-none border-x-0 border-t-0 border-b-2 border-zinc-200 bg-transparent px-0 py-3 text-lg font-['Manrope'] focus-visible:ring-0 focus-visible:border-[#002FA7] transition-colors w-full",
+      "select": "Shadcn component customized: rounded-none border-x-0 border-t-0 border-b-2 border-zinc-200 bg-transparent px-0 font-['Manrope'] focus:ring-0 focus:border-[#002FA7]"
+    },
+    "cards": {
+      "style": "Technical Grid Borders: border-collapse, subtle 1px border-zinc-200, flat background, no shadows unless hovered.",
+      "hover": "-translate-y-1 shadow-[0_12px_24px_rgba(0,0,0,0.05)] border-zinc-300 transition-all duration-300"
+    },
+    "seo_chips": {
+      "container": "flex flex-wrap gap-2 mt-4",
+      "style": "border border-[#002FA7]/20 text-[#002FA7] bg-[#002FA7]/5 rounded-none px-3 py-1 text-xs uppercase tracking-widest font-['JetBrains_Mono']"
+    }
+  },
+  "motion": {
+    "transitions": "transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
+    "hover_states": "Interactive elements translate slightly (-translate-y-[2px]) with subtle border darken.",
+    "loading_state": "Animated pulsing gradient or 'Tracing Beam' on the right panel over the skeleton text, using Framer Motion."
+  },
+  "media": {
+    "image_urls": [
+      {
+        "category": "empty_state",
+        "url": "https://images.unsplash.com/photo-1671371553620-99daf3804294?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwZGVzayUyMHR5cGV3cml0ZXIlMjBvciUyMHBhcGVyJTIwdGV4dHVyZXxlbnwwfHx8fDE3NzczMjE0NTB8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Minimalist typewriter on a desk.",
+        "usage": "Use as a faded, muted accent image (opacity-50, grayscale) in the empty state of the preview panel before blog generation."
+      }
+    ],
+    "icons": {
+      "library": "@phosphor-icons/react",
+      "weight": "duotone",
+      "instructions": "Use Phosphor Icons in duotone weight for a technical yet editorial look."
+    }
+  },
+  "testing": {
+    "attributes": "All interactive and key informational elements MUST include a data-testid attribute in kebab-case."
+  },
+  "instructions_to_main_agent": [
+    "1. Install Phosphor icons: yarn add @phosphor-icons/react",
+    "2. Add font @imports to index.css and extend tailwind.config.js with the font families.",
+    "3. Build the primary interface as a Left/Right Split layout. Left panel (controls) has fixed width on desktop, right panel takes remaining space.",
+    "4. Ditch the standard 'boxy' inputs for the prompt. Use brutalist, bottom-border-only textareas and selects.",
+    "5. Use 'Playfair Display' exclusively for the generated blog preview text to simulate a premium publishing experience.",
+    "6. Include data-testid attributes on every button, input, and key container.",
+    "7. Implement the empty state using the provided Unsplash image, styled minimally.",
+    "8. Use the defined 'Control Room' grid layout for the History page."
+  ]
+}
