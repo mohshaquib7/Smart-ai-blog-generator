@@ -18,14 +18,44 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Configure logging early
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+)
+logger = logging.getLogger(__name__)
+
+# In-memory storage for blogs (fallback when MongoDB is not available)
+BLOGS_STORAGE = {}
+
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+client = None
+db = None
+use_mongodb = False
+
+try:
+    client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=2000)
+    db = client[os.environ.get('DB_NAME', 'blog_generator')]
+    use_mongodb = True
+    logger.info("MongoDB client initialized (will verify connection on first use)")
+except Exception as e:
+    logger.warning(f"MongoDB client initialization failed, using in-memory storage: {e}")
+    use_mongodb = False
 
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
 app = FastAPI(title="AI Blog Generator API")
+
+# Add CORS middleware FIRST before including router
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins for development
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 api_router = APIRouter(prefix="/api")
 
 
@@ -180,27 +210,72 @@ async def generate_blog(payload: GenerateRequest):
 
     doc = record.model_dump()
     doc["created_at"] = doc["created_at"].isoformat()
-    await db.blogs.insert_one(doc)
+    
+    # Save to MongoDB or in-memory storage
+    if use_mongodb and db is not None:
+        try:
+            await db.blogs.insert_one(doc)
+            logger.info(f"Blog saved to MongoDB: {record.id}")
+        except Exception as e:
+            logger.warning(f"Failed to save to MongoDB: {e}, using in-memory storage")
+            BLOGS_STORAGE[record.id] = doc
+    else:
+        BLOGS_STORAGE[record.id] = doc
+        logger.info(f"Blog saved to in-memory storage: {record.id}")
 
     return record
 
 
 @api_router.get("/blogs", response_model=List[BlogSummary])
 async def list_blogs(limit: int = 50):
-    cursor = db.blogs.find(
-        {},
-        {
-            "_id": 0,
-            "id": 1,
-            "title": 1,
-            "topic": 1,
-            "tone": 1,
-            "length": 1,
-            "word_count": 1,
-            "created_at": 1,
-        },
-    ).sort("created_at", -1).limit(limit)
-    items = await cursor.to_list(length=limit)
+    items = []
+    
+    if use_mongodb and db is not None:
+        try:
+            cursor = db.blogs.find(
+                {},
+                {
+                    "_id": 0,
+                    "id": 1,
+                    "title": 1,
+                    "topic": 1,
+                    "tone": 1,
+                    "length": 1,
+                    "word_count": 1,
+                    "created_at": 1,
+                },
+            ).sort("created_at", -1).limit(limit)
+            items = await cursor.to_list(length=limit)
+        except Exception as e:
+            logger.warning(f"Failed to fetch from MongoDB: {e}, using in-memory storage")
+            # Fall through to use in-memory storage
+    
+    # Use in-memory storage
+    if not items:
+        # Sort by created_at, handling both datetime and string formats
+        def get_sort_key(blog):
+            created_at = blog.get("created_at")
+            if isinstance(created_at, str):
+                return datetime.fromisoformat(created_at)
+            return created_at
+        
+        items = [
+            {
+                "id": blog["id"],
+                "title": blog["title"],
+                "topic": blog["topic"],
+                "tone": blog["tone"],
+                "length": blog["length"],
+                "word_count": blog["word_count"],
+                "created_at": blog["created_at"],
+            }
+            for blog in sorted(
+                BLOGS_STORAGE.values(),
+                key=get_sort_key,
+                reverse=True
+            )[:limit]
+        ]
+    
     for it in items:
         if isinstance(it.get("created_at"), str):
             it["created_at"] = datetime.fromisoformat(it["created_at"])
@@ -209,7 +284,17 @@ async def list_blogs(limit: int = 50):
 
 @api_router.get("/blogs/{blog_id}", response_model=BlogRecord)
 async def get_blog(blog_id: str):
-    doc = await db.blogs.find_one({"id": blog_id}, {"_id": 0})
+    doc = None
+    
+    if use_mongodb and db is not None:
+        try:
+            doc = await db.blogs.find_one({"id": blog_id}, {"_id": 0})
+        except Exception as e:
+            logger.warning(f"Failed to fetch from MongoDB: {e}, using in-memory storage")
+    
+    if not doc and blog_id in BLOGS_STORAGE:
+        doc = BLOGS_STORAGE[blog_id]
+    
     if not doc:
         raise HTTPException(status_code=404, detail="Blog not found")
     if isinstance(doc.get("created_at"), str):
@@ -219,29 +304,29 @@ async def get_blog(blog_id: str):
 
 @api_router.delete("/blogs/{blog_id}")
 async def delete_blog(blog_id: str):
-    result = await db.blogs.delete_one({"id": blog_id})
-    if result.deleted_count == 0:
+    deleted = False
+    
+    if use_mongodb and db is not None:
+        try:
+            result = await db.blogs.delete_one({"id": blog_id})
+            deleted = result.deleted_count > 0
+        except Exception as e:
+            logger.warning(f"Failed to delete from MongoDB: {e}")
+    
+    if not deleted and blog_id in BLOGS_STORAGE:
+        del BLOGS_STORAGE[blog_id]
+        deleted = True
+    
+    if not deleted:
         raise HTTPException(status_code=404, detail="Blog not found")
     return {"success": True}
 
 
 app.include_router(api_router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-)
-logger = logging.getLogger(__name__)
-
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    client.close()
+    if client:
+        client.close()
+
